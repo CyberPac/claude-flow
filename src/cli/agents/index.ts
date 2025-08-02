@@ -10,6 +10,11 @@ export { AnalystAgent, createAnalystAgent } from './analyst.js';
 export { ArchitectAgent, createArchitectAgent } from './architect.js';
 export { TesterAgent, createTesterAgent } from './tester.js';
 export { CoordinatorAgent, createCoordinatorAgent } from './coordinator.js';
+export { ReviewerAgent, createReviewerAgent } from './reviewer.js';
+export { OptimizerAgent, createOptimizerAgent } from './optimizer.js';
+export { DocumenterAgent, createDocumenterAgent } from './documenter.js';
+export { MonitorAgent, createMonitorAgent } from './monitor.js';
+export { SpecialistAgent, createSpecialistAgent } from './specialist.js';
 
 // Systems
 export { AgentCapabilitySystem } from './capabilities.js';
@@ -32,6 +37,11 @@ import { createAnalystAgent } from './analyst.js';
 import { createArchitectAgent } from './architect.js';
 import { createTesterAgent } from './tester.js';
 import { createCoordinatorAgent } from './coordinator.js';
+import { createReviewerAgent } from './reviewer.js';
+import { createOptimizerAgent } from './optimizer.js';
+import { createDocumenterAgent } from './documenter.js';
+import { createMonitorAgent } from './monitor.js';
+import { createSpecialistAgent } from './specialist.js';
 import { generateId } from '../../utils/helpers.js';
 
 export interface AgentFactoryConfig {
@@ -74,14 +84,7 @@ export class AgentFactory {
 
     switch (type) {
       case 'researcher':
-        return createResearcherAgent(
-          id,
-          config,
-          environment,
-          this.logger,
-          this.eventBus,
-          this.memory,
-        );
+        return createResearcherAgent(id, config, environment, this.logger, this.eventBus, this.memory);
 
       case 'coder':
         return createCoderAgent(id, config, environment, this.logger, this.eventBus, this.memory);
@@ -90,27 +93,47 @@ export class AgentFactory {
         return createAnalystAgent(id, config, environment, this.logger, this.eventBus, this.memory);
 
       case 'architect':
-        return createArchitectAgent(
-          id,
-          config,
-          environment,
-          this.logger,
-          this.eventBus,
-          this.memory,
-        );
+        return createArchitectAgent(id, config, environment, this.logger, this.eventBus, this.memory);
 
       case 'tester':
         return createTesterAgent(id, config, environment, this.logger, this.eventBus, this.memory);
 
       case 'coordinator':
-        return createCoordinatorAgent(
-          id,
-          config,
-          environment,
-          this.logger,
-          this.eventBus,
-          this.memory,
-        );
+        return createCoordinatorAgent(id, config, environment, this.logger, this.eventBus, this.memory);
+
+      case 'reviewer':
+        return createReviewerAgent(id, config, environment, this.logger, this.eventBus, this.memory);
+
+      case 'optimizer':
+        return createOptimizerAgent(id, config, environment, this.logger, this.eventBus, this.memory);
+
+      case 'documenter':
+        return createDocumenterAgent(id, config, environment, this.logger, this.eventBus, this.memory);
+
+      case 'monitor':
+        return createMonitorAgent(id, config, environment, this.logger, this.eventBus, this.memory);
+
+      case 'specialist':
+        return createSpecialistAgent(id, config, environment, this.logger, this.eventBus, this.memory);
+
+      // Legacy type mappings for backward compatibility
+      case 'requirements_analyst':
+        return createAnalystAgent(id, config, environment, this.logger, this.eventBus, this.memory);
+
+      case 'design_architect':
+        return createArchitectAgent(id, config, environment, this.logger, this.eventBus, this.memory);
+
+      case 'task_planner':
+        return createCoordinatorAgent(id, config, environment, this.logger, this.eventBus, this.memory);
+
+      case 'implementation_coder':  
+        return createCoderAgent(id, config, environment, this.logger, this.eventBus, this.memory);
+
+      case 'quality_reviewer':
+        return createReviewerAgent(id, config, environment, this.logger, this.eventBus, this.memory);
+
+      case 'steering_documenter':
+        return createDocumenterAgent(id, config, environment, this.logger, this.eventBus, this.memory);
 
       default:
         throw new Error(`Unknown agent type: ${type}`);
