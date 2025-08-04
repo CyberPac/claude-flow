@@ -1,0 +1,238 @@
+name: 🚀 Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! 🚀
+        
+        Please fill out this form to help us understand your feature request and its potential impact.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: Please confirm the following before submitting
+      options:
+        - label: I have searched existing issues and this feature hasn't been requested
+          required: true
+        - label: I have checked the roadmap and this isn't already planned
+          required: true
+        - label: This feature aligns with Claude Flow's goals and scope
+          required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      description: What category does this feature fall into?
+      options:
+        - Agent System - New agent types or coordination improvements
+        - Performance - Speed, memory, or efficiency improvements
+        - CLI/UX - Command-line interface or user experience
+        - Integration - Third-party service integrations
+        - Developer Tools - Development and debugging tools
+        - Documentation - Documentation improvements
+        - Configuration - Configuration and setup features
+        - Security - Security and authentication features
+        - Other - Please specify in description
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have, not urgent
+        - Medium - Would improve my workflow significantly
+        - High - Blocking my use case or critical for adoption
+        - Critical - Must-have for production use
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve?
+      placeholder: |
+        Describe the problem you're trying to solve...
+        
+        - What's the current situation?
+        - What challenges are you facing?
+        - How does this impact your workflow?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your proposed solution in detail
+      placeholder: |
+        Describe your proposed solution...
+        
+        - How would this feature work?
+        - What would the user interface look like?
+        - How would it integrate with existing features?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      description: Have you considered any alternative solutions?
+      placeholder: |
+        Describe alternative solutions you've considered...
+        
+        - What other approaches could solve this problem?
+        - Why is your proposed solution better?
+        - Are there existing tools that partially solve this?
+
+  - type: textarea
+    id: use-cases
+    attributes:
+      label: Use Cases
+      description: Provide specific use cases for this feature
+      placeholder: |
+        Example use cases:
+        
+        1. As a developer, I want to... so that I can...
+        2. When working with large projects, I need to... because...
+        3. In production environments, it would be helpful to... to ensure...
+    validations:
+      required: true
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups/Examples
+      description: Provide mockups, examples, or detailed specifications
+      placeholder: |
+        # Example CLI usage:
+        ```bash
+        claude-flow new-feature --option value
+        ```
+        
+        # Example configuration:
+        ```json
+        {
+          "newFeature": {
+            "enabled": true,
+            "options": {}
+          }
+        }
+        ```
+        
+        # Expected output:
+        ```
+        ✅ New feature executed successfully
+        ```
+
+  - type: checkboxes
+    id: components
+    attributes:
+      label: Affected Components
+      description: Which components would this feature affect?
+      options:
+        - label: Core agent system
+        - label: CLI interface
+        - label: Configuration system
+        - label: Memory management
+        - label: Task orchestration
+        - label: GitHub integration
+        - label: Performance monitoring
+        - label: Documentation
+        - label: API/MCP tools
+        - label: Testing framework
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Estimated Complexity
+      description: How complex do you think this feature would be to implement?
+      options:
+        - Low - Small change, minimal impact
+        - Medium - Moderate change, some architectural considerations
+        - High - Significant change, major architectural impact
+        - Very High - Major feature requiring substantial development
+        - Unknown - I'm not sure about the complexity
+
+  - type: checkboxes
+    id: breaking-changes
+    attributes:
+      label: Breaking Changes
+      description: Would this feature require breaking changes?
+      options:
+        - label: This feature would require breaking changes to existing APIs
+        - label: This feature would require changes to configuration format
+        - label: This feature would require database/memory format changes
+        - label: This feature is backward compatible
+        - label: I'm not sure about backward compatibility
+
+  - type: textarea
+    id: benefits
+    attributes:
+      label: Benefits
+      description: What are the benefits of implementing this feature?
+      placeholder: |
+        Benefits of this feature:
+        
+        - Improved developer productivity
+        - Better performance/reliability
+        - Enhanced user experience
+        - Reduced complexity
+        - Better integration with existing tools
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Potential Risks/Drawbacks
+      description: Are there any potential risks or drawbacks?
+      placeholder: |
+        Potential risks or concerns:
+        
+        - Performance impact
+        - Increased complexity
+        - Maintenance burden
+        - Compatibility issues
+        - Security considerations
+
+  - type: input
+    id: timeline
+    attributes:
+      label: Desired Timeline
+      description: When would you ideally like to see this feature?
+      placeholder: "Next release, within 3 months, no specific timeline"
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any additional context, research, or references
+      placeholder: |
+        Additional information:
+        
+        - Links to similar features in other tools
+        - Research or documentation
+        - Community feedback or discussions
+        - Screenshots or diagrams
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you willing to help implement this feature?
+      options:
+        - label: I'm willing to help with design and specification
+        - label: I'm willing to implement this feature
+        - label: I'm willing to help with testing and feedback
+        - label: I'm willing to help with documentation
+        - label: I'm just requesting the feature (no contribution planned)

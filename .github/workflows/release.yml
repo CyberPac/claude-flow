@@ -1,0 +1,312 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v2.0.0-phase2)'
+        required: true
+        type: string
+
+env:
+  NODE_VERSION: '20'
+  NPM_VERSION: '9'
+
+jobs:
+  validate:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is-prerelease: ${{ steps.version.outputs.is-prerelease }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Check if prerelease
+          if echo "$VERSION" | grep -E "(alpha|beta|rc|phase)" > /dev/null; then
+            echo "is-prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is-prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if ! echo "$VERSION" | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$"; then
+            echo "❌ Invalid version format: $VERSION"
+            exit 1
+          fi
+          echo "✅ Valid version format: $VERSION"
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: validate
+    
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run type checking
+        run: npm run typecheck
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm run test:unit
+        env:
+          NODE_OPTIONS: '--experimental-vm-modules'
+
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          NODE_OPTIONS: '--experimental-vm-modules'
+
+      - name: Run performance tests
+        run: npm run test:performance
+        env:
+          NODE_OPTIONS: '--experimental-vm-modules'
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: validate
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level moderate
+
+      - name: Run security scan
+        run: |
+          npx audit-ci --config .audit-ci.json || true
+          
+      - name: Check for sensitive files
+        run: |
+          if find . -name "*.key" -o -name "*.pem" -o -name "*.p12" | grep -v node_modules | head -1; then
+            echo "❌ Sensitive files found in repository"
+            exit 1
+          fi
+          echo "✅ No sensitive files found"
+
+  build:
+    name: Build Release
+    runs-on: ubuntu-latest
+    needs: [validate, test, security]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Create deployment package
+        run: |
+          tar -czf phase2-deployment-package.tar.gz \
+            --exclude=node_modules \
+            --exclude=.git \
+            --exclude=*.log \
+            RELEASE_NOTES_v2.0.0-phase2.md \
+            DEPLOYMENT_GUIDE.md \
+            ROLLBACK_PROCEDURES.md \
+            VERSION_STRATEGY.md \
+            package.json \
+            dist/ \
+            src/ \
+            scripts/ \
+            README.md \
+            CHANGELOG.md
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            dist/
+            phase2-deployment-package.tar.gz
+          retention-days: 30
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [validate, test, security, build]
+    permissions:
+      contents: write
+      packages: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+
+      - name: Update package version
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          VERSION_NO_V="${VERSION#v}"
+          npm version "$VERSION_NO_V" --no-git-tag-version
+          echo "Updated package.json to version $VERSION_NO_V"
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.validate.outputs.version }}
+          release_name: Claude Flow ${{ needs.validate.outputs.version }}
+          body_path: RELEASE_NOTES_v2.0.0-phase2.md
+          draft: false
+          prerelease: ${{ needs.validate.outputs.is-prerelease }}
+
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./phase2-deployment-package.tar.gz
+          asset_name: phase2-deployment-package.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload Deployment Guide
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./DEPLOYMENT_GUIDE.md
+          asset_name: DEPLOYMENT_GUIDE.md
+          asset_content_type: text/markdown
+
+      - name: Upload Rollback Procedures
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./ROLLBACK_PROCEDURES.md
+          asset_name: ROLLBACK_PROCEDURES.md
+          asset_content_type: text/markdown
+
+      - name: Publish to NPM
+        if: needs.validate.outputs.is-prerelease == 'false'
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish prerelease to NPM
+        if: needs.validate.outputs.is-prerelease == 'true'
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          if echo "$VERSION" | grep -q "alpha"; then
+            npm publish --tag alpha
+          elif echo "$VERSION" | grep -q "beta"; then
+            npm publish --tag beta
+          elif echo "$VERSION" | grep -q "rc"; then
+            npm publish --tag rc
+          elif echo "$VERSION" | grep -q "phase"; then
+            TAG=$(echo "$VERSION" | sed 's/.*-\(phase[0-9]\).*/\1/')
+            npm publish --tag "$TAG"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  deploy:
+    name: Deploy Release
+    runs-on: ubuntu-latest
+    needs: [validate, release]
+    if: needs.validate.outputs.is-prerelease == 'false'
+    
+    steps:
+      - name: Deploy to production
+        run: |
+          echo "🚀 Deploying Claude Flow ${{ needs.validate.outputs.version }} to production"
+          # Add production deployment steps here
+          
+      - name: Update documentation
+        run: |
+          echo "📚 Updating documentation for ${{ needs.validate.outputs.version }}"
+          # Add documentation update steps here
+
+  notify:
+    name: Notify Release
+    runs-on: ubuntu-latest
+    needs: [validate, release]
+    if: always()
+    
+    steps:
+      - name: Notify success
+        if: needs.release.result == 'success'
+        run: |
+          echo "✅ Release ${{ needs.validate.outputs.version }} completed successfully"
+          # Add notification steps (Slack, Discord, etc.)
+
+      - name: Notify failure
+        if: needs.release.result == 'failure'
+        run: |
+          echo "❌ Release ${{ needs.validate.outputs.version }} failed"
+          # Add failure notification steps

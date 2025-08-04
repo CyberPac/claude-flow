@@ -1,0 +1,178 @@
+name: 🐛 Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! 🐛
+        
+        Please fill out this form as completely as possible to help us understand and reproduce the issue.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: Please confirm the following before submitting
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I have read the documentation and troubleshooting guide
+          required: true
+        - label: I have tested with the latest version
+          required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Claude Flow Version
+      description: What version of Claude Flow are you using?
+      placeholder: "v2.0.0-phase2"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: What environment are you running Claude Flow in?
+      options:
+        - Production
+        - Development
+        - Testing/Staging
+        - Local Development
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js Version
+      description: What version of Node.js are you using?
+      placeholder: "v20.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      placeholder: "Ubuntu 22.04, macOS 14.0, Windows 11"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: Describe what happened...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: Describe what you expected...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Describe what actually happened...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Please provide detailed steps to reproduce the issue
+      placeholder: |
+        1. Run command: `claude-flow ...`
+        2. Configure settings: ...
+        3. Execute action: ...
+        4. See error: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Messages/Logs
+      description: Please include any relevant error messages or log output
+      placeholder: |
+        Paste error messages or logs here...
+        
+        Tip: You can get logs with `claude-flow logs --tail 50`
+      render: text
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuration
+      description: Please share your configuration (remove any sensitive information)
+      placeholder: |
+        Paste your configuration here (sanitize any API keys or sensitive data)
+        
+        You can get your config with `claude-flow config list`
+      render: json
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Bug Severity
+      description: How severe is this bug?
+      options:
+        - Low - Minor inconvenience, workaround available
+        - Medium - Significant impact but workaround exists
+        - High - Major functionality broken, no workaround
+        - Critical - System unusable, data loss possible
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: components
+    attributes:
+      label: Affected Components
+      description: Which components are affected by this bug?
+      options:
+        - label: Agent coordination/spawning
+        - label: Memory management
+        - label: Task orchestration
+        - label: CLI interface
+        - label: GitHub integration
+        - label: Performance/monitoring
+        - label: Configuration management
+        - label: Documentation
+        - label: Other (please specify in description)
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context, screenshots, or information about the problem
+      placeholder: |
+        - Screenshots (if applicable)
+        - Workarounds you've tried
+        - Impact on your workflow
+        - Any other relevant information
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you willing to help with this issue?
+      options:
+        - label: I'm willing to investigate this issue
+        - label: I'm willing to submit a pull request to fix this issue
+        - label: I can provide additional testing/feedback
